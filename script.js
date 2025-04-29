@@ -1,52 +1,80 @@
 const questions = [
     {
-      question: "Locate the username field by its ID and enter 'username'.",
-      answer: 'driver.find_element(By.ID, "username").send_keys("username")'
+      question: "1. Locate the username field by its ID and enter 'username'.",
+      expected: 'driver.find_element(By.ID, "username").send_keys("username")'
     },
     {
-      question: "Click the Login button using XPath with contains().",
-      answer: 'driver.find_element(By.XPATH, "//button[contains(text(), \'Login\')]").click()'
+      question: "2. Locate the password field by name and enter 'password'.",
+      expected: 'driver.find_element(By.NAME, "password").send_keys("password")'
     },
-    // Add more questions as needed
+    {
+      question: "3. Click the Login button using XPath with contains().",
+      expected: 'driver.find_element(By.XPATH, "//button[contains(text(), \'Login\')]").click()'
+    },
+    {
+      question: "4. Use self axis to select a tag: //input[@id='search']/self::input",
+      expected: "//input[@id='search']/self::input"
+    },
+    {
+      question: "5. Use following-sibling axis: //label[@for='username']/following-sibling::input",
+      expected: "//label[@for='username']/following-sibling::input"
+    },
   ];
   
-  let currentQuestion = 0;
   let score = 0;
+  let answered = Array(questions.length).fill(false);
   
-  document.addEventListener("DOMContentLoaded", () => {
-    displayQuestion();
-    document.getElementById("submit-btn").addEventListener("click", checkAnswer);
-  });
+  function renderQuestions() {
+    const container = document.getElementById("questions-container");
+    container.innerHTML = "";
   
-  function displayQuestion() {
-    document.getElementById("question-text").textContent = questions[currentQuestion].question;
-    document.getElementById("user-input").value = "";
-    document.getElementById("feedback").textContent = "";
+    questions.forEach((q, index) => {
+      const box = document.createElement("div");
+      box.className = "question-box";
+  
+      box.innerHTML = `
+        <p><strong>${q.question}</strong></p>
+        <textarea id="input-${index}" placeholder="Write your code here..."></textarea>
+        <br>
+        <button onclick="submitAnswer(${index})">Submit</button>
+        <button onclick="showAnswer(${index})">Show Answer</button>
+        <p class="feedback" id="feedback-${index}"></p>
+      `;
+  
+      container.appendChild(box);
+    });
+  
+    updateScore();
   }
   
-  function checkAnswer() {
-    const userAnswer = document.getElementById("user-input").value.trim();
-    const correctAnswer = questions[currentQuestion].answer;
+  function submitAnswer(index) {
+    const userInput = document.getElementById(`input-${index}`).value.trim();
+    const expected = questions[index].expected.trim();
+    const feedback = document.getElementById(`feedback-${index}`);
   
-    if (userAnswer === correctAnswer) {
-      score++;
-      document.getElementById("feedback").textContent = "Correct!";
-      document.getElementById("feedback").style.color = "green";
+    if (userInput === expected) {
+      if (!answered[index]) {
+        score++;
+        answered[index] = true;
+      }
+      feedback.textContent = "✅ Correct!";
+      feedback.style.color = "green";
     } else {
-      document.getElementById("feedback").textContent = "Incorrect. Try again.";
-      document.getElementById("feedback").style.color = "red";
-      return;
+      feedback.textContent = "❌ Incorrect, try again.";
+      feedback.style.color = "red";
     }
   
-    document.getElementById("score").textContent = `Score: ${score}`;
-    currentQuestion++;
-  
-    if (currentQuestion < questions.length) {
-      displayQuestion();
-    } else {
-      document.getElementById("question-text").textContent = "You've completed all questions!";
-      document.getElementById("user-input").style.display = "none";
-      document.getElementById("submit-btn").style.display = "none";
-    }
+    updateScore();
   }
+  
+  function showAnswer(index) {
+    const feedback = document.getElementById(`feedback-${index}`);
+    feedback.innerHTML = `<span style="color:blue">Answer: ${questions[index].expected}</span>`;
+  }
+  
+  function updateScore() {
+    document.getElementById("score").textContent = `Score: ${score} / ${questions.length}`;
+  }
+  
+  document.addEventListener("DOMContentLoaded", renderQuestions);
   
